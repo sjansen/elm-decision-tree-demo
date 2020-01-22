@@ -1,0 +1,16 @@
+# Directories
+.idea/
+.vscode/
+build/
+elm-stuff/
+node_modules/
+
+# Files
+/TODO
+/local.env
+.DS_Store
+coverage.txt
+
+# Patterns
+.*.sw[op]
+repl-temp-*
