@@ -1,10 +1,10 @@
-module Tests exposing (..)
+module Tests exposing (all)
 
 import DecisionTree exposing (..)
 import Dict exposing (Dict)
 import Expect
 import Maybe exposing (Maybe(..))
-import Route exposing (Route(..), fromUrl)
+import Route exposing (Route(..))
 import Test exposing (..)
 import Url
 
@@ -19,7 +19,7 @@ all =
         [ test "Valid Step" <|
             \_ ->
                 Expect.equal
-                    (Just (Answer "Correct!"))
+                    (Just (Decision "Correct!"))
                     (walk [ "42" ] h2g2)
         , test "Invalid Step" <|
             \_ ->
@@ -29,18 +29,23 @@ all =
         , test "Multiple Steps" <|
             \_ ->
                 Expect.equal
-                    (Just (Answer "Right. Off you go."))
+                    (Just (Decision "Right. Off you go."))
                     (walk [ "lancelot", "grail", "blue" ] python)
         , test "URL Parsing" <|
             \_ ->
                 Expect.equal
-                    (Just (Answers [ "lancelot", "grail", "blue" ]))
-                    (case Url.fromString "https://example.com/t/lancelot/grail/blue" of
-                        Just url ->
-                            Route.fromUrl url
+                    (Just (Tree [ "lancelot", "grail", "blue" ]))
+                    (Route.fromString "https://example.com/t/lancelot/grail/blue")
+        , test "Routing" <|
+            \_ ->
+                Expect.equal
+                    (Just (Decision "Hee hee heh."))
+                    (case Route.fromString "https://example.com/t/robin/grail/yellow" of
+                        Just (Tree path) ->
+                            walk path python
 
-                        Nothing ->
-                            Just Root
+                        _ ->
+                            Nothing
                     )
         ]
 
@@ -48,9 +53,9 @@ all =
 h2g2 =
     Question "What is the answer to life, the universe, and everything?"
         (Dict.fromList
-            [ ( "love", Answer "As you wish." )
-            , ( "money", Answer "You have chosen poorly." )
-            , ( "42", Answer "Correct!" )
+            [ ( "love", Decision "As you wish." )
+            , ( "money", Decision "You have chosen poorly." )
+            , ( "42", Decision "Correct!" )
             ]
         )
 
@@ -76,7 +81,7 @@ quest =
 color =
     Question "What is your favorite color?"
         (Dict.fromList
-            [ ( "blue", Answer "Right. Off you go." )
-            , ( "yellow", Answer "Hee hee heh." )
+            [ ( "blue", Decision "Right. Off you go." )
+            , ( "yellow", Decision "Hee hee heh." )
             ]
         )

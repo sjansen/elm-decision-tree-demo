@@ -1,4 +1,4 @@
-module Route exposing (Route(..), fromUrl)
+module Route exposing (Route(..), fromString, fromUrl)
 
 import Url exposing (Url)
 import Url.Parser as UrlParser exposing ((</>), Parser, map, oneOf, s, string, top)
@@ -6,7 +6,17 @@ import Url.Parser as UrlParser exposing ((</>), Parser, map, oneOf, s, string, t
 
 type Route
     = Root
-    | Answers (List String)
+    | Tree (List String)
+
+
+fromString : String -> Maybe Route
+fromString str =
+    case Url.fromString str of
+        Just url ->
+            fromUrl url
+
+        Nothing ->
+            Nothing
 
 
 fromUrl : Url -> Maybe Route
@@ -18,7 +28,7 @@ parser : Parser (Route -> a) a
 parser =
     oneOf
         [ map Root top
-        , map Answers (s "t" </> rest)
+        , map Tree (s "t" </> rest)
         ]
 
 

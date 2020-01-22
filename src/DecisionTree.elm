@@ -1,15 +1,15 @@
-module DecisionTree exposing (DecisionTree(..), Options, Path, walk)
+module DecisionTree exposing (Answers, DecisionTree(..), Path, walk)
 
 import Dict exposing (Dict)
 import Maybe exposing (Maybe(..))
 
 
 type DecisionTree
-    = Question String Options
-    | Answer String
+    = Question String Answers
+    | Decision String
 
 
-type alias Options =
+type alias Answers =
     Dict String DecisionTree
 
 
