@@ -34,21 +34,21 @@ all =
             \_ ->
                 Expect.equal
                     (Just
-                        [ { path = "/"
+                        [ { path = []
                           , question = "What is your name?"
-                          , answer = "Lancelot"
+                          , answer = "Arthur, King of the Britons"
                           }
-                        , { path = "/lancelot/"
+                        , { path = [ "arthur" ]
                           , question = "What is your quest?"
-                          , answer = "The Holy Grail"
+                          , answer = "To seek The Holy Grail."
                           }
-                        , { path = "/lancelot/grail/"
-                          , question = "What is your favorite color?"
-                          , answer = "Blue"
+                        , { path = [ "arthur", "grail" ]
+                          , question = "What is the airspeed velocity of an unladen swallow?"
+                          , answer = "What do you mean? What do you mean, an African or European swallow?"
                           }
                         ]
                     )
-                    (DecisionTree.describe python [ "lancelot", "grail", "blue" ])
+                    (DecisionTree.describe python [ "arthur", "grail", "blue" ])
         , test "URL Parsing" <|
             \_ ->
                 Expect.equal
@@ -100,33 +100,48 @@ python =
         , alternatives =
             Dict.fromList
                 [ ( "arthur"
-                  , { label = "Arthur"
-                    , tree = quest
+                  , { label = "Arthur, King of the Britons"
+                    , tree = quest2
                     }
                   )
                 , ( "lancelot"
                   , { label = "Lancelot"
-                    , tree = quest
+                    , tree = quest1
                     }
                   )
                 , ( "robin"
                   , { label = "Robin"
-                    , tree = quest
+                    , tree = quest1
                     }
                   )
                 ]
         }
 
 
-quest : DecisionTree
-quest =
+quest1 : DecisionTree
+quest1 =
     Parent
         { label = "What is your quest?"
         , alternatives =
             Dict.fromList
                 [ ( "grail"
-                  , { label = "The Holy Grail"
+                  , { label = "To seek The Holy Grail."
                     , tree = color
+                    }
+                  )
+                ]
+        }
+
+
+quest2 : DecisionTree
+quest2 =
+    Parent
+        { label = "What is your quest?"
+        , alternatives =
+            Dict.fromList
+                [ ( "grail"
+                  , { label = "To seek The Holy Grail."
+                    , tree = swallow
                     }
                   )
                 ]
@@ -147,6 +162,21 @@ color =
                 , ( "yellow"
                   , { label = "Yellow"
                     , tree = Leaf { label = "Hee hee heh." }
+                    }
+                  )
+                ]
+        }
+
+
+swallow : DecisionTree
+swallow =
+    Parent
+        { label = "What is the airspeed velocity of an unladen swallow?"
+        , alternatives =
+            Dict.fromList
+                [ ( "blue"
+                  , { label = "What do you mean? What do you mean, an African or European swallow?"
+                    , tree = Leaf { label = "I... I don't know that." }
                     }
                   )
                 ]

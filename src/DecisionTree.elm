@@ -1,5 +1,6 @@
 module DecisionTree exposing (DecisionTree(..), Path, describe, next)
 
+import Array exposing (Array)
 import Dict exposing (Dict)
 import Maybe exposing (Maybe(..))
 
@@ -35,7 +36,7 @@ type alias Question =
 
 
 type alias Step =
-    { path : String
+    { path : Path
     , question : String
     , answer : String
     }
@@ -43,7 +44,7 @@ type alias Step =
 
 describe : DecisionTree -> Path -> Maybe (List Step)
 describe tree path =
-    describeSteps "/" tree path
+    describeSteps Array.empty tree path
 
 
 next : DecisionTree -> Path -> Maybe DecisionTree
@@ -68,7 +69,7 @@ next tree path =
 -- HELPERS --
 
 
-describeSteps : String -> DecisionTree -> Path -> Maybe (List Step)
+describeSteps : Array String -> DecisionTree -> Path -> Maybe (List Step)
 describeSteps prefix tree path =
     case ( path, tree ) of
         ( [], _ ) ->
@@ -95,7 +96,7 @@ describeSteps prefix tree path =
             in
             case ( maybeStep, maybeTree ) of
                 ( Just step, Just subtree ) ->
-                    case describeSteps (prefix ++ key ++ "/") subtree keys of
+                    case describeSteps (Array.push key prefix) subtree keys of
                         Just steps ->
                             Just (step :: steps)
 
@@ -116,14 +117,14 @@ getAlternative key question =
             Nothing
 
 
-getStep : String -> AltID -> Question -> Maybe Step
+getStep : Array String -> AltID -> Question -> Maybe Step
 getStep path key question =
     case Dict.get key question.alternatives of
         Just alternative ->
             Just
-                { question = question.label
+                { path = Array.toList path
+                , question = question.label
                 , answer = alternative.label
-                , path = path
                 }
 
         Nothing ->
