@@ -1,12 +1,11 @@
 module Tests exposing (all)
 
-import DecisionTree exposing (..)
+import DecisionTree exposing (DecisionTree(..))
 import Dict exposing (Dict)
 import Expect
 import Maybe exposing (Maybe(..))
 import Route exposing (Route(..))
 import Test exposing (..)
-import Url
 
 
 
@@ -15,22 +14,41 @@ import Url
 
 all : Test
 all =
-    describe "Walking A Tree"
-        [ test "Valid Step" <|
+    Test.describe "Walking A Tree"
+        [ test "Valid Path" <|
             \_ ->
                 Expect.equal
-                    (Just (Decision "Correct!"))
-                    (walk [ "42" ] h2g2)
-        , test "Invalid Step" <|
+                    (Just (Leaf { label = "Correct!" }))
+                    (DecisionTree.next h2g2 [ "42" ])
+        , test "Invalid Path" <|
             \_ ->
                 Expect.equal
                     Nothing
-                    (walk [ "fame" ] h2g2)
+                    (DecisionTree.next h2g2 [ "fame" ])
         , test "Multiple Steps" <|
             \_ ->
                 Expect.equal
-                    (Just (Decision "Right. Off you go."))
-                    (walk [ "lancelot", "grail", "blue" ] python)
+                    (Just (Leaf { label = "Right. Off you go." }))
+                    (DecisionTree.next python [ "lancelot", "grail", "blue" ])
+        , test "Describe" <|
+            \_ ->
+                Expect.equal
+                    (Just
+                        [ { path = "/"
+                          , question = "What is your name?"
+                          , answer = "Lancelot"
+                          }
+                        , { path = "/lancelot/"
+                          , question = "What is your quest?"
+                          , answer = "The Holy Grail"
+                          }
+                        , { path = "/lancelot/grail/"
+                          , question = "What is your favorite color?"
+                          , answer = "Blue"
+                          }
+                        ]
+                    )
+                    (DecisionTree.describe python [ "lancelot", "grail", "blue" ])
         , test "URL Parsing" <|
             \_ ->
                 Expect.equal
@@ -39,10 +57,10 @@ all =
         , test "Routing" <|
             \_ ->
                 Expect.equal
-                    (Just (Decision "Hee hee heh."))
+                    (Just (Leaf { label = "Hee hee heh." }))
                     (case Route.fromString "https://example.com/t/robin/grail/yellow" of
                         Just (Tree path) ->
-                            walk path python
+                            DecisionTree.next python path
 
                         _ ->
                             Nothing
@@ -50,38 +68,86 @@ all =
         ]
 
 
+h2g2 : DecisionTree
 h2g2 =
-    Question "What is the answer to life, the universe, and everything?"
-        (Dict.fromList
-            [ ( "love", Decision "As you wish." )
-            , ( "money", Decision "You have chosen poorly." )
-            , ( "42", Decision "Correct!" )
-            ]
-        )
+    Parent
+        { label = "What is the answer to life, the universe, and everything?"
+        , alternatives =
+            Dict.fromList
+                [ ( "love"
+                  , { label = "Love"
+                    , tree = Leaf { label = "As you wish." }
+                    }
+                  )
+                , ( "money"
+                  , { label = "Money"
+                    , tree = Leaf { label = "You have chosen poorly." }
+                    }
+                  )
+                , ( "42"
+                  , { label = "42"
+                    , tree = Leaf { label = "Correct!" }
+                    }
+                  )
+                ]
+        }
 
 
+python : DecisionTree
 python =
-    Question "What is your name?"
-        (Dict.fromList
-            [ ( "arthur", quest )
-            , ( "lancelot", quest )
-            , ( "robin", quest )
-            ]
-        )
+    Parent
+        { label = "What is your name?"
+        , alternatives =
+            Dict.fromList
+                [ ( "arthur"
+                  , { label = "Arthur"
+                    , tree = quest
+                    }
+                  )
+                , ( "lancelot"
+                  , { label = "Lancelot"
+                    , tree = quest
+                    }
+                  )
+                , ( "robin"
+                  , { label = "Robin"
+                    , tree = quest
+                    }
+                  )
+                ]
+        }
 
 
+quest : DecisionTree
 quest =
-    Question "What is your quest?"
-        (Dict.fromList
-            [ ( "grail", color )
-            ]
-        )
+    Parent
+        { label = "What is your quest?"
+        , alternatives =
+            Dict.fromList
+                [ ( "grail"
+                  , { label = "The Holy Grail"
+                    , tree = color
+                    }
+                  )
+                ]
+        }
 
 
+color : DecisionTree
 color =
-    Question "What is your favorite color?"
-        (Dict.fromList
-            [ ( "blue", Decision "Right. Off you go." )
-            , ( "yellow", Decision "Hee hee heh." )
-            ]
-        )
+    Parent
+        { label = "What is your favorite color?"
+        , alternatives =
+            Dict.fromList
+                [ ( "blue"
+                  , { label = "Blue"
+                    , tree = Leaf { label = "Right. Off you go." }
+                    }
+                  )
+                , ( "yellow"
+                  , { label = "Yellow"
+                    , tree = Leaf { label = "Hee hee heh." }
+                    }
+                  )
+                ]
+        }
