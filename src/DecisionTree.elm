@@ -1,4 +1,4 @@
-module DecisionTree exposing (DecisionTree(..), Path, describe, next)
+module DecisionTree exposing (DecisionTree(..), Path, describe, eachAlternative, next)
 
 import Array exposing (Array)
 import Dict exposing (Dict)
@@ -47,11 +47,16 @@ describe tree path =
     describeSteps Array.empty tree path
 
 
+eachAlternative : (AltID -> Alternative -> b -> b) -> b -> Dict AltID Alternative -> b
+eachAlternative fn x altneratives =
+    Dict.foldl fn x altneratives
+
+
 next : DecisionTree -> Path -> Maybe DecisionTree
 next tree path =
     case path of
         [] ->
-            Nothing
+            Just tree
 
         key :: [] ->
             getTree key tree
