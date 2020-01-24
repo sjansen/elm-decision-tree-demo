@@ -11,5 +11,8 @@
     "build": "elm-app build",
     "start": "elm-app start",
     "test": "elm-app test"
+  },
+  "dependencies": {
+    "normalize.css": "^8.0.1"
   }
 }

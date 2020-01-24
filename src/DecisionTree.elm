@@ -1,4 +1,4 @@
-module DecisionTree exposing (DecisionTree(..), Path, describe, eachAlternative, next)
+module DecisionTree exposing (Decision, DecisionTree(..), Path, Question, describe, eachAlternative, next)
 
 import Array exposing (Array)
 import Dict exposing (Dict)

@@ -2,11 +2,8 @@ module Main exposing (..)
 
 import Browser
 import Browser.Navigation as Nav
-import DecisionTree exposing (DecisionTree(..), eachAlternative)
-import Html exposing (Html, a, div, h1, img, li, p, text, ul)
-import Html.Attributes exposing (href, src)
+import Page
 import Route exposing (Route(..))
-import Trees exposing (python)
 import Url
 
 
@@ -69,35 +66,4 @@ update msg model =
 
 view : Model -> Browser.Document Msg
 view model =
-    { title = "Decision Tree"
-    , body =
-        [ div []
-            [ a [ href "/" ] [ img [ src "/logo.svg" ] [] ]
-            , h1 [] [ text "Your Elm App is working!" ]
-            , case Route.fromUrl model.url of
-                Just (Tree path) ->
-                    case DecisionTree.next python path of
-                        Just (Parent question) ->
-                            p []
-                                [ text question.label
-                                , ul []
-                                    (eachAlternative
-                                        (\k v l ->
-                                            li [] [ a [ href (k ++ "/") ] [ text v.label ] ] :: l
-                                        )
-                                        []
-                                        question.alternatives
-                                    )
-                                ]
-
-                        Just (Leaf decision) ->
-                            p [] [ text decision.label ]
-
-                        Nothing ->
-                            p [] [ text "Not Found" ]
-
-                _ ->
-                    p [] [ a [ href "/t/" ] [ text "python" ] ]
-            ]
-        ]
-    }
+    Page.view (Route.fromUrl model.url)

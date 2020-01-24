@@ -1,7 +1,27 @@
-module Trees exposing (h2g2, python)
+module Trees exposing (h2g2, menu, python)
 
 import DecisionTree exposing (DecisionTree(..))
 import Dict exposing (Dict)
+
+
+menu : DecisionTree
+menu =
+    Parent
+        { label = "Choose a decision tree:"
+        , alternatives =
+            Dict.fromList
+                [ ( "h2g2"
+                  , { label = "The Hitchhiker's Guide to the Galaxy"
+                    , tree = h2g2
+                    }
+                  )
+                , ( "python"
+                  , { label = "Monty Python and the Holy Grail"
+                    , tree = python
+                    }
+                  )
+                ]
+        }
 
 
 h2g2 : DecisionTree
