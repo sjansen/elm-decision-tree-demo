@@ -22,6 +22,7 @@ type alias AltID =
 
 type alias Decision =
     { label : String
+    , detail : Maybe String
     }
 
 
@@ -49,7 +50,7 @@ describe tree path =
 
 eachAlternative : (AltID -> Alternative -> b -> b) -> b -> Dict AltID Alternative -> b
 eachAlternative fn x altneratives =
-    Dict.foldl fn x altneratives
+    Dict.foldr fn x altneratives
 
 
 next : DecisionTree -> Path -> Maybe DecisionTree

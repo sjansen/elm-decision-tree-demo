@@ -8,7 +8,7 @@ import Page.Decision as Decision
 import Page.NotFound as NotFound
 import Page.Question as Question
 import Route exposing (Route(..))
-import Trees exposing (menu)
+import Trees exposing (recipes)
 
 
 view : Maybe Route -> Browser.Document msg
@@ -47,7 +47,7 @@ viewMain route =
     main_ []
         [ case route of
             Just (Tree path) ->
-                case DecisionTree.next menu path of
+                case DecisionTree.next recipes path of
                     Just (Parent question) ->
                         Question.view question
 
