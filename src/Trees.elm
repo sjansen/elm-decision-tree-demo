@@ -7,7 +7,7 @@ import Dict exposing (Dict)
 recipes : DecisionTree
 recipes =
     Parent
-        { label = "Pick a meal:"
+        { label = "Which meal are you planning?"
         , alternatives =
             Dict.fromList
                 [ ( "breakfast"
@@ -56,12 +56,12 @@ breakfast =
                             , alternatives =
                                 Dict.fromList
                                     [ ( "normal"
-                                      , { label = "Small meal"
+                                      , { label = "Average"
                                         , tree = omelet
                                         }
                                       )
                                     , ( "very"
-                                      , { label = "Large meal"
+                                      , { label = "Very hungry"
                                         , tree = fullEnglish
                                         }
                                       )
@@ -77,12 +77,12 @@ breakfast =
                             , alternatives =
                                 Dict.fromList
                                     [ ( "normal"
-                                      , { label = "Small meal"
+                                      , { label = "Average"
                                         , tree = quiche
                                         }
                                       )
                                     , ( "very"
-                                      , { label = "Large meal"
+                                      , { label = "Very hungry"
                                         , tree = fullEnglish
                                         }
                                       )

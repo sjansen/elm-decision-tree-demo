@@ -1,4 +1,4 @@
-module DecisionTree exposing (Decision, DecisionTree(..), Path, Question, describe, eachAlternative, next)
+module DecisionTree exposing (Decision, DecisionTree(..), Node, Path, Question, describe, eachAlternative, next)
 
 import Array exposing (Array)
 import Dict exposing (Dict)
@@ -36,21 +36,21 @@ type alias Question =
     }
 
 
-type alias Step =
+type alias Node =
     { path : Path
     , question : String
     , answer : String
     }
 
 
-describe : DecisionTree -> Path -> Maybe (List Step)
+describe : DecisionTree -> Path -> Maybe (List Node)
 describe tree path =
     describeSteps Array.empty tree path
 
 
 eachAlternative : (AltID -> Alternative -> b -> b) -> b -> Dict AltID Alternative -> b
-eachAlternative fn x altneratives =
-    Dict.foldr fn x altneratives
+eachAlternative fn x alternatives =
+    Dict.foldr fn x alternatives
 
 
 next : DecisionTree -> Path -> Maybe DecisionTree
@@ -75,7 +75,7 @@ next tree path =
 -- HELPERS --
 
 
-describeSteps : Array String -> DecisionTree -> Path -> Maybe (List Step)
+describeSteps : Array String -> DecisionTree -> Path -> Maybe (List Node)
 describeSteps prefix tree path =
     case ( path, tree ) of
         ( [], _ ) ->
@@ -123,7 +123,7 @@ getAlternative key question =
             Nothing
 
 
-getStep : Array String -> AltID -> Question -> Maybe Step
+getStep : Array String -> AltID -> Question -> Maybe Node
 getStep path key question =
     case Dict.get key question.alternatives of
         Just alternative ->

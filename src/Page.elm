@@ -1,9 +1,9 @@
 module Page exposing (view)
 
 import Browser
-import DecisionTree exposing (DecisionTree(..))
-import Html.Styled exposing (Html, a, div, h1, header, img, main_, nav, span, text)
-import Html.Styled.Attributes exposing (class, href, id, src)
+import DecisionTree exposing (DecisionTree(..), Node, Path, describe)
+import Html.Styled exposing (..)
+import Html.Styled.Attributes exposing (..)
 import Page.Decision as Decision
 import Page.NotFound as NotFound
 import Page.Question as Question
@@ -13,17 +13,51 @@ import Trees exposing (recipes)
 
 view : Maybe Route -> Browser.Document msg
 view route =
+    let
+        page =
+            getPage route
+    in
     { title = "Decision Tree"
     , body =
         List.map
             Html.Styled.toUnstyled
             [ div [ class "grid" ]
                 [ viewHeader
-                , viewNav
-                , viewMain route
+                , nav [ id "sidebar" ] page.sidebar
+                , main_ [] [ page.content ]
                 ]
             ]
     }
+
+
+
+-- HELPERS --
+
+
+getPage : Maybe Route -> { content : Html msg, sidebar : List (Html msg) }
+getPage route =
+    case route of
+        Just (Tree path) ->
+            case DecisionTree.next recipes path of
+                Just (Parent question) ->
+                    { content = .content <| Question.view question
+                    , sidebar = viewPath recipes path
+                    }
+
+                Just (Leaf decision) ->
+                    { content = .content <| Decision.view decision
+                    , sidebar = viewPath recipes path
+                    }
+
+                Nothing ->
+                    { content = .content <| NotFound.view
+                    , sidebar = [ text "Page Not Found" ]
+                    }
+
+        _ ->
+            { content = .content <| NotFound.view
+            , sidebar = [ text "Page Not Found" ]
+            }
 
 
 viewHeader : Html msg
@@ -37,26 +71,40 @@ viewHeader =
         ]
 
 
-viewNav : Html msg
-viewNav =
-    nav [ id "main-nav" ] [ text "TODO" ]
+viewNode : Node -> List (Html msg)
+viewNode node =
+    [ dt []
+        [ a
+            [ href
+                (case node.path of
+                    [] ->
+                        "/t/"
 
-
-viewMain : Maybe Route -> Html msg
-viewMain route =
-    main_ []
-        [ case route of
-            Just (Tree path) ->
-                case DecisionTree.next recipes path of
-                    Just (Parent question) ->
-                        Question.view question
-
-                    Just (Leaf decision) ->
-                        Decision.view decision
-
-                    Nothing ->
-                        NotFound.view
-
-            _ ->
-                NotFound.view
+                    _ ->
+                        "/t/" ++ String.join "/" node.path ++ "/"
+                )
+            ]
+            [ text node.question ]
         ]
+    , dd [] [ text node.answer ]
+    ]
+
+
+viewPath : DecisionTree -> Path -> List (Html msg)
+viewPath tree path =
+    let
+        desc =
+            describe tree path
+    in
+    case desc of
+        Just nodes ->
+            [ dl []
+                (List.foldr
+                    (\n html -> List.append (viewNode n) html)
+                    []
+                    nodes
+                )
+            ]
+
+        Nothing ->
+            []

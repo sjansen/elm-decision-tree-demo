@@ -1,8 +1,11 @@
 module Page.NotFound exposing (view)
 
-import Html.Styled exposing (Html, h2, text)
+import Html.Styled exposing (..)
 
 
-view : Html msg
+view : { title : String, content : Html msg }
 view =
-    h2 [] [ text "Not Found" ]
+    { title = ""
+    , content =
+        h1 [] [ text "Not Found" ]
+    }
