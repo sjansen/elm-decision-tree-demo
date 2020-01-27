@@ -1,21 +1,45 @@
-module Page exposing (view)
+module Page exposing (Page, getPage, view)
 
 import Browser
 import DecisionTree exposing (DecisionTree(..), Node, Path, describe)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
-import Page.Decision as Decision
+import Page.Decision as DecisionPage
 import Page.NotFound as NotFound
-import Page.Question as Question
+import Page.Question as QuestionPage
 import Route exposing (Route(..))
 import Trees exposing (recipes)
 
 
-view : Maybe Route -> Browser.Document msg
-view route =
+type Page
+    = Question Path QuestionPage.Model
+    | Decision Path DecisionPage.Model
+    | NotFound NotFound.Model
+
+
+getPage : Maybe Route -> Page
+getPage route =
+    case route of
+        Just (Tree path) ->
+            case DecisionTree.next recipes path of
+                Just (Parent question) ->
+                    Question path (QuestionPage.init question)
+
+                Just (Leaf decision) ->
+                    Decision path (DecisionPage.init decision)
+
+                Nothing ->
+                    NotFound NotFound.init
+
+        _ ->
+            NotFound NotFound.init
+
+
+view : Page -> Browser.Document msg
+view page =
     let
-        page =
-            getPage route
+        blocks =
+            getBlocks page
     in
     { title = "Decision Tree"
     , body =
@@ -23,8 +47,8 @@ view route =
             Html.Styled.toUnstyled
             [ div [ class "grid" ]
                 [ viewHeader
-                , nav [ id "sidebar" ] page.sidebar
-                , main_ [] [ page.content ]
+                , nav [ id "sidebar" ] blocks.sidebar
+                , main_ [] [ blocks.content ]
                 ]
             ]
     }
@@ -34,28 +58,21 @@ view route =
 -- HELPERS --
 
 
-getPage : Maybe Route -> { content : Html msg, sidebar : List (Html msg) }
-getPage route =
-    case route of
-        Just (Tree path) ->
-            case DecisionTree.next recipes path of
-                Just (Parent question) ->
-                    { content = .content <| Question.view question
-                    , sidebar = viewPath recipes path
-                    }
+getBlocks : Page -> { content : Html msg, sidebar : List (Html msg) }
+getBlocks page =
+    case page of
+        Question path model ->
+            { content = .content <| QuestionPage.view model
+            , sidebar = viewPath recipes path
+            }
 
-                Just (Leaf decision) ->
-                    { content = .content <| Decision.view decision
-                    , sidebar = viewPath recipes path
-                    }
+        Decision path model ->
+            { content = .content <| DecisionPage.view model
+            , sidebar = viewPath recipes path
+            }
 
-                Nothing ->
-                    { content = .content <| NotFound.view
-                    , sidebar = [ text "Page Not Found" ]
-                    }
-
-        _ ->
-            { content = .content <| NotFound.view
+        NotFound model ->
+            { content = .content <| NotFound.view model
             , sidebar = [ text "Page Not Found" ]
             }
 

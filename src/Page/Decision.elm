@@ -1,20 +1,57 @@
-module Page.Decision exposing (view)
+module Page.Decision exposing (Model, init, update, view)
 
 import Css exposing (..)
 import DecisionTree exposing (Decision)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
+import Http
 import List
 import Markdown.Parser as Markdown
 
 
-view : Decision -> { title : String, content : Html msg }
-view decision =
+type alias Model =
+    { decision : Decision
+    , status : Status
+    }
+
+
+type Status
+    = Failed
+    | Loading
+    | Loaded String
+    | Ready
+
+
+type Msg
+    = GotDetails (Result Http.Error String)
+
+
+init : Decision -> Model
+init decision =
+    { decision = decision
+    , status = Ready
+    }
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        GotDetails result ->
+            case result of
+                Ok markdown ->
+                    ( { model | status = Loaded markdown }, Cmd.none )
+
+                Err _ ->
+                    ( { model | status = Failed }, Cmd.none )
+
+
+view : Model -> { title : String, content : Html msg }
+view model =
     { title = ""
     , content =
         div [ class "decision" ]
-            [ h1 [] [ text decision.label ]
-            , case decision.detail of
+            [ h1 [] [ text model.decision.label ]
+            , case model.decision.detail of
                 Nothing ->
                     p [] [ text "TODO" ]
 

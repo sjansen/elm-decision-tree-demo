@@ -1,10 +1,19 @@
-module Page.NotFound exposing (view)
+module Page.NotFound exposing (Model, init, view)
 
 import Html.Styled exposing (..)
 
 
-view : { title : String, content : Html msg }
-view =
+type Model
+    = Ready
+
+
+init : Model
+init =
+    Ready
+
+
+view : Model -> { title : String, content : Html msg }
+view _ =
     { title = ""
     , content =
         h1 [] [ text "Not Found" ]

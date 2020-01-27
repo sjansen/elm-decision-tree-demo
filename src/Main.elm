@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Browser.Navigation as Nav
-import Page
+import Page exposing (Page(..), getPage)
 import Route exposing (Route(..))
 import Url
 
@@ -25,13 +25,23 @@ main =
 
 type alias Model =
     { key : Nav.Key
+    , page : Page
     , url : Url.Url
     }
 
 
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
-    ( Model key url, Cmd.none )
+    let
+        maybeRoute =
+            Route.fromUrl url
+    in
+    ( { key = key
+      , page = getPage maybeRoute
+      , url = url
+      }
+    , Cmd.none
+    )
 
 
 
@@ -55,7 +65,14 @@ update msg model =
                     ( model, Nav.load href )
 
         UrlChanged url ->
-            ( { model | url = url }
+            let
+                maybeRoute =
+                    Route.fromUrl url
+
+                page =
+                    getPage maybeRoute
+            in
+            ( { model | page = page, url = url }
             , Cmd.none
             )
 
@@ -66,4 +83,4 @@ update msg model =
 
 view : Model -> Browser.Document Msg
 view model =
-    Page.view (Route.fromUrl model.url)
+    Page.view model.page
