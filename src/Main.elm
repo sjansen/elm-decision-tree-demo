@@ -1,4 +1,4 @@
-module Main exposing (..)
+module Main exposing (main)
 
 import Browser
 import Browser.Navigation as Nav
@@ -7,7 +7,7 @@ import Route exposing (Route(..))
 import Url
 
 
-main : Program () Model Msg
+main : Program Flags Model Msg
 main =
     Browser.application
         { init = init
@@ -20,27 +20,40 @@ main =
 
 
 
----- MODEL ----
+----
+
+
+type alias Flags =
+    { public_url : String
+    }
 
 
 type alias Model =
     { key : Nav.Key
     , page : Page
+    , root : String
     , url : Url.Url
     }
 
 
-init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url key =
+init : Flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url key =
     let
         maybeRoute =
             Route.fromUrl url
+
+        { public_url } =
+            flags
+
+        ( page, msg ) =
+            getPage maybeRoute
     in
     ( { key = key
-      , page = getPage maybeRoute
+      , page = page
+      , root = public_url
       , url = url
       }
-    , Cmd.none
+    , Cmd.map PageMsg msg
     )
 
 
@@ -50,6 +63,7 @@ init _ url key =
 
 type Msg
     = LinkClicked Browser.UrlRequest
+    | PageMsg Page.Msg
     | UrlChanged Url.Url
 
 
@@ -64,16 +78,25 @@ update msg model =
                 Browser.External href ->
                     ( model, Nav.load href )
 
+        PageMsg subMsg ->
+            let
+                ( page, pageMsg ) =
+                    Page.update subMsg model.page
+            in
+            ( { model | page = page }
+            , Cmd.map PageMsg pageMsg
+            )
+
         UrlChanged url ->
             let
                 maybeRoute =
                     Route.fromUrl url
 
-                page =
+                ( page, pageMsg ) =
                     getPage maybeRoute
             in
             ( { model | page = page, url = url }
-            , Cmd.none
+            , Cmd.map PageMsg pageMsg
             )
 
 

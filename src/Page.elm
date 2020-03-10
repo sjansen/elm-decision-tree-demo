@@ -1,4 +1,4 @@
-module Page exposing (Page, getPage, view)
+module Page exposing (Msg, Page, getPage, update, view)
 
 import Browser
 import DecisionTree exposing (DecisionTree(..), Node, Path, describe)
@@ -11,28 +11,47 @@ import Route exposing (Route(..))
 import Trees exposing (recipes)
 
 
+type Msg
+    = DecisionMsg DecisionPage.Msg
+
+
 type Page
     = Question Path QuestionPage.Model
     | Decision Path DecisionPage.Model
     | NotFound NotFound.Model
 
 
-getPage : Maybe Route -> Page
+getPage : Maybe Route -> ( Page, Cmd Msg )
 getPage route =
     case route of
         Just (Tree path) ->
             case DecisionTree.next recipes path of
                 Just (Parent question) ->
-                    Question path (QuestionPage.init question)
+                    ( Question path (QuestionPage.init question), Cmd.none )
 
                 Just (Leaf decision) ->
-                    Decision path (DecisionPage.init decision)
+                    let
+                        ( model, msg ) =
+                            DecisionPage.init decision
+                    in
+                    ( Decision path model, Cmd.map DecisionMsg msg )
 
                 Nothing ->
-                    NotFound NotFound.init
+                    ( NotFound NotFound.init, Cmd.none )
 
         _ ->
-            NotFound NotFound.init
+            ( NotFound NotFound.init, Cmd.none )
+
+
+update : Msg -> Page -> ( Page, Cmd Msg )
+update msg page =
+    case ( msg, page ) of
+        ( DecisionMsg subMsg, Decision path model ) ->
+            DecisionPage.update subMsg model
+                |> updateWith (Decision path) DecisionMsg
+
+        ( _, _ ) ->
+            ( page, Cmd.none )
 
 
 view : Page -> Browser.Document msg
@@ -75,6 +94,13 @@ getBlocks page =
             { content = .content <| NotFound.view model
             , sidebar = [ text "Page Not Found" ]
             }
+
+
+updateWith : (subModel -> Page) -> (subMsg -> Msg) -> ( subModel, Cmd subMsg ) -> ( Page, Cmd Msg )
+updateWith toPage toMsg ( subModel, subCmd ) =
+    ( toPage subModel
+    , Cmd.map toMsg subCmd
+    )
 
 
 viewHeader : Html msg

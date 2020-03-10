@@ -1,5 +1,6 @@
 module Route exposing (Route(..), fromString, fromUrl)
 
+import Maybe exposing (andThen)
 import Url exposing (Url)
 import Url.Parser as UrlParser exposing ((</>), Parser, map, oneOf, s, string, top)
 
@@ -11,12 +12,8 @@ type Route
 
 fromString : String -> Maybe Route
 fromString str =
-    case Url.fromString str of
-        Just url ->
-            fromUrl url
-
-        Nothing ->
-            Nothing
+    Url.fromString str
+        |> andThen fromUrl
 
 
 fromUrl : Url -> Maybe Route
