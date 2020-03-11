@@ -4,7 +4,7 @@ import Css exposing (..)
 import DecisionTree exposing (Decision)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
-import Http
+import Http exposing (Error(..))
 import List
 import Loading
 import Markdown.Parser as Markdown
@@ -18,7 +18,7 @@ type alias Model =
 
 
 type Status
-    = Failed
+    = Failed Error
     | Loaded String
     | Loading
     | LoadingSlowly
@@ -49,8 +49,8 @@ update msg model =
                 Ok markdown ->
                     ( { model | status = Loaded markdown }, Cmd.none )
 
-                Err _ ->
-                    ( { model | status = Failed }, Cmd.none )
+                Err err ->
+                    ( { model | status = Failed err }, Cmd.none )
 
         SlowLoadDetected ->
             case model.status of
@@ -68,8 +68,8 @@ view model =
         div [ class "decision" ]
             [ h1 [] [ text model.decision.label ]
             , case model.status of
-                Failed ->
-                    p [] [ text "Loading Failed" ]
+                Failed err ->
+                    p [] [ text (loadingFailed err) ]
 
                 Loading ->
                     p [] []
@@ -81,6 +81,44 @@ view model =
                     viewDetail markdown
             ]
     }
+
+
+deadEndsToString deadEnds =
+    deadEnds
+        |> List.map Markdown.deadEndToString
+        |> String.join "\n"
+
+
+getDetails : Decision -> Cmd Msg
+getDetails decision =
+    case decision.detail of
+        Just subpath ->
+            Http.get
+                { url = "/trees/recipes/v1/" ++ subpath
+                , expect = Http.expectString GotDetails
+                }
+
+        Nothing ->
+            Cmd.none
+
+
+loadingFailed : Http.Error -> String
+loadingFailed err =
+    case err of
+        BadUrl msg ->
+            "Loading Failed: " ++ msg
+
+        Timeout ->
+            "Loading Failed: request timed out"
+
+        NetworkError ->
+            "Loading Failed: unable to connect"
+
+        BadStatus status ->
+            "Loading Failed: HTTP " ++ String.fromInt status
+
+        BadBody msg ->
+            "Loading Failed: " ++ msg
 
 
 viewDetail : String -> Html msg
@@ -117,22 +155,3 @@ viewDetail markdown =
 
         Err errors ->
             text errors
-
-
-deadEndsToString deadEnds =
-    deadEnds
-        |> List.map Markdown.deadEndToString
-        |> String.join "\n"
-
-
-getDetails : Decision -> Cmd Msg
-getDetails decision =
-    case decision.detail of
-        Just subpath ->
-            Http.get
-                { url = "/trees/recipes/v1/" ++ subpath
-                , expect = Http.expectString GotDetails
-                }
-
-        Nothing ->
-            Cmd.none
